@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заказ оформлен — Тепловодоучет</title>
+  <link rel="stylesheet" href="css/tokens.css?v=13">
+  <link rel="stylesheet" href="css/base.css?v=13">
+  <link rel="stylesheet" href="css/components.css?v=13">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="container section">
+    <div id="success-root"></div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/config.js?v=13"></script>
+  <script src="js/services/api.js?v=13"></script>
+  <script src="js/site.js?v=13"></script>
+  <script>
+    (function () {
+      var esc = EVR.esc, I = EVR.icons;
+      var root = document.getElementById('success-root');
+
+      // Номер и токен доступа к заказу кладёт checkout.js; сам заказ (состав,
+      // статусы, суммы) читаем у магазина — GET /orders/:number?token=…
+      var ref = null;
+      try { ref = JSON.parse(localStorage.getItem('tvu_last_order')); } catch (e) {}
+      var number = EVR.qs('order') || (ref && ref.number);
+      var token = EVR.qs('token') || (ref && ref.token);
+
+      function noData(text) {
+        root.innerHTML = '<div class="empty">' + I.info + '<h2>Нет данных о заказе</h2>' +
+          '<p class="muted">' + esc(text) + '</p>' +
+          '<p style="margin-top:16px"><a class="btn btn--primary" href="catalog.html">В каталог</a></p></div>';
+      }
+
+      if (!number || !token) {
+        noData('Похоже, заказ ещё не оформлен или ссылка открыта в другом браузере.');
+        return;
+      }
+
+      root.innerHTML = '<p class="muted" style="text-align:center">Запрашиваем статус заказа…</p>';
+
+      var PAY_LABEL = { paid: 'оплачен', pending: 'ожидает оплаты', unpaid: 'не оплачен',
+                        refunded: 'возврат', failed: 'оплата не прошла' };
+      var STATUS_LABEL = { new: 'принят', confirmed: 'подтверждён', packing: 'собирается',
+                           shipped: 'отгружен', delivered: 'доставлен', cancelled: 'отменён' };
+      var DELIVERY_LABEL = { pvz: 'пункт выдачи СДЭК', courier: 'курьером СДЭК',
+                             pickup: 'самовывоз со склада' };
+
+      EVR_API.order(number, token).then(function (o) {
+        var rows = (o.items || []).map(function (it) {
+          return '<div class="summary__row"><span>' + esc(it.name) + ' × ' + it.qty +
+            '</span><span class="nowrap">' + EVR.money(Number(it.lineTotal)) + '</span></div>';
+        }).join('');
+
+        var d = o.delivery || {};
+        root.innerHTML =
+          '<div style="max-width:640px;margin:0 auto;text-align:center">' +
+            '<div style="width:72px;height:72px;margin:0 auto 20px;border-radius:50%;background:var(--color-success-soft);color:var(--color-success);display:flex;align-items:center;justify-content:center">' +
+              I.check.replace('viewBox', 'width="36" height="36" viewBox') + '</div>' +
+            '<h1>Заказ оформлен!</h1>' +
+            '<p class="muted" style="margin:12px 0 24px">Номер заказа <b class="text-accent">' + esc(o.number) + '</b>. ' +
+            'Статус: <b>' + esc(STATUS_LABEL[o.status] || o.status) + '</b>, оплата: <b>' +
+            esc(PAY_LABEL[o.paymentStatus] || o.paymentStatus) + '</b>. ' +
+            'Менеджер свяжется с вами для подтверждения.</p>' +
+          '</div>' +
+          '<div class="card-block" style="max-width:640px;margin:0 auto">' +
+            '<h3>Состав заказа</h3>' + rows +
+            '<div class="summary__row summary__row--total"><span>Итого</span><span>' +
+              EVR.money(Number(o.grandTotal)) + '</span></div>' +
+            (d.address || d.type
+              ? '<div class="summary__note">Доставка: ' + esc(DELIVERY_LABEL[d.type] || d.type || '') +
+                (d.address ? ', ' + esc(d.address) : '') +
+                (d.trackingUrl ? ' · <a href="' + esc(d.trackingUrl) + '" target="_blank" rel="noopener">отследить</a>' : '') +
+                '</div>'
+              : '') +
+            '<div class="summary__note">Сохраните ссылку на эту страницу — по ней виден актуальный статус заказа: ' +
+              '<a href="order-success.html?order=' + encodeURIComponent(o.number) + '&token=' + encodeURIComponent(token) + '">' +
+              'статус заказа ' + esc(o.number) + '</a></div>' +
+          '</div>' +
+          '<div style="text-align:center;margin-top:24px">' +
+            '<a class="btn btn--primary btn--lg" href="catalog.html">Продолжить покупки</a></div>';
+      }).catch(function (err) {
+        noData(err && err.status === 404
+          ? 'Заказ не найден — возможно, истекла ссылка доступа.'
+          : 'Не удалось получить статус заказа: ' + (err && err.message ? err.message : 'нет связи'));
+      });
+    })();
+  </script>
+</body>
+</html>

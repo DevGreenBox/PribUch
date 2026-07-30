@@ -1,0 +1,116 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>test</title></head><body>
+<pre id="out">running…</pre>
+<iframe id="fr" width="390" height="800" style="position:absolute;left:-9999px"></iframe>
+<script>
+var log = [], fails = 0;
+function ok(name, cond, extra) {
+  if (!cond) fails++;
+  log.push((cond ? 'PASS ' : 'FAIL ') + name + (extra ? ' [' + extra + ']' : ''));
+}
+var fr = document.getElementById('fr');
+function load(url) {
+  return new Promise(function (res) {
+    fr.onload = function () { setTimeout(function () { res(fr.contentDocument); }, 350); };
+    fr.src = '../' + url;
+  });
+}
+function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+function click(d, sel) { var el = d.querySelector(sel); if (!el) throw new Error('no ' + sel); el.click(); }
+function has(d, sel, cls) { var el = d.querySelector(sel); return !!el && el.classList.contains(cls); }
+
+(async function () {
+  try {
+    // ---- Мобильное меню на главной ----
+    var d = await load('index.html');
+    ok('меню изначально закрыто', !has(d, '.mnav', 'is-open'));
+    ok('прокрутка страницы не заблокирована', !has(d, 'body', 'is-locked'));
+    click(d, '[data-nav-toggle]'); await wait(120);
+    ok('бургер открывает меню', has(d, '.mnav', 'is-open'));
+    ok('фон-затемнение показано', has(d, '.drawer-backdrop', 'is-open'));
+    ok('страница заблокирована', has(d, 'body', 'is-locked'));
+    ok('aria-expanded=true', d.querySelector('[data-nav-toggle]').getAttribute('aria-expanded') === 'true');
+    ok('меню видимо (не visibility:hidden)',
+      fr.contentWindow.getComputedStyle(d.querySelector('.mnav')).visibility === 'visible');
+    click(d, '.drawer-backdrop'); await wait(120);
+    ok('клик по фону закрывает меню', !has(d, '.mnav', 'is-open'));
+    ok('блокировка снята', !has(d, 'body', 'is-locked'));
+    // Esc
+    click(d, '[data-nav-toggle]'); await wait(50);
+    d.dispatchEvent(new fr.contentWindow.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await wait(120);
+    ok('Esc закрывает меню', !has(d, '.mnav', 'is-open') && !has(d, 'body', 'is-locked'));
+    // Возврат к десктопу
+    click(d, '[data-nav-toggle]'); await wait(120);
+    ok('меню снова открыто перед проверкой ресайза', has(d, '.mnav', 'is-open'));
+    fr.width = 1200;
+    void fr.contentDocument.body.offsetWidth;    // принудительный пересчёт стилей
+    await wait(700);
+    log.push('     mq.matches=' + fr.contentWindow.matchMedia('(min-width: 861px)').matches);
+    ok('расширение окна закрывает меню', !has(d, '.mnav', 'is-open'),
+      'innerWidth=' + fr.contentWindow.innerWidth);
+    ok('расширение окна снимает блокировку', !has(d, 'body', 'is-locked'));
+    fr.width = 390; await wait(150);
+
+    // ---- Кнопка «в корзину» из карточки ----
+    d = await load('index.html');
+    var before = (JSON.parse(fr.contentWindow.localStorage.getItem('evr_cart') || '{}'));
+    click(d, '[data-add]'); await wait(150);
+    var after = JSON.parse(fr.contentWindow.localStorage.getItem('evr_cart') || '{}');
+    var sum = function (o) { var n = 0; for (var k in o) n += o[k]; return n; };
+    ok('товар добавляется в корзину', sum(after) === sum(before) + 1);
+    ok('показан тост', has(d, '.toast', 'is-visible'));
+    ok('счётчик корзины обновлён', d.querySelector('.cart-count').textContent === String(sum(after)));
+
+    // ---- Панель фильтров в каталоге ----
+    d = await load('catalog.html');
+    ok('панель фильтров закрыта', !has(d, '.filters', 'is-open'));
+    click(d, '[data-filters-toggle]'); await wait(120);
+    ok('кнопка открывает фильтры', has(d, '.filters', 'is-open'));
+    ok('страница заблокирована при открытых фильтрах', has(d, 'body', 'is-locked'));
+    var applyBefore = d.getElementById('f-apply-count').textContent;
+    // выбор категории не должен закрывать панель
+    var catBtn = d.querySelectorAll('[data-cat]')[2];
+    catBtn.click(); await wait(200);
+    ok('панель остаётся открытой после выбора категории', has(d, '.filters', 'is-open'));
+    var applyAfter = d.getElementById('f-apply-count').textContent;
+    ok('счётчик «Показать» пересчитан', applyBefore !== applyAfter, applyBefore + ' → ' + applyAfter);
+    ok('на кнопке «Фильтры» появилась цифра', d.getElementById('f-active-count').textContent === '1');
+    click(d, '.filters__apply'); await wait(150);
+    ok('«Показать» закрывает панель', !has(d, '.filters', 'is-open'));
+    ok('блокировка снята после «Показать»', !has(d, 'body', 'is-locked'));
+    ok('товары отфильтрованы', d.querySelectorAll('#grid .card').length > 0,
+      d.querySelectorAll('#grid .card').length + ' карточек');
+    click(d, '[data-filters-toggle]'); await wait(80);
+    click(d, '[data-filters-close]'); await wait(120);
+    ok('крестик закрывает панель', !has(d, '.filters', 'is-open') && !has(d, 'body', 'is-locked'));
+    // сброс фильтров
+    click(d, '[data-filters-toggle]'); await wait(80);
+    click(d, '#f-reset'); await wait(200);
+    ok('сброс обнуляет цифру фильтров', d.getElementById('f-active-count').textContent === '');
+    click(d, '[data-filters-close]'); await wait(80);
+
+    // ---- Корзина: раскладка позиции ----
+    fr.contentWindow.localStorage.setItem('evr_cart', JSON.stringify({ '1': 2, '5': 1 }));
+    d = await load('cart.html');
+    ok('в корзине 2 позиции', d.querySelectorAll('.cart-item').length === 2);
+    ok('у позиции есть все области сетки',
+      !!d.querySelector('.cart-item__info') && !!d.querySelector('.cart-item__sum') &&
+      !!d.querySelector('.cart-item .qty') && !!d.querySelector('.cart-item__remove'));
+    var areas = ['cart-item__media', 'cart-item__info', 'cart-item__sum', 'cart-item__remove'].map(function (c) {
+      return fr.contentWindow.getComputedStyle(d.querySelector('.' + c)).gridArea;
+    });
+    ok('grid-area заданы (не auto)', areas.every(function (a) { return a && a !== 'auto' && a.indexOf('auto') === -1; }), areas.join(' | '));
+    // плюс/минус количества
+    click(d, '.cart-item [data-q="1"]'); await wait(150);
+    ok('кнопка «+» увеличивает количество',
+      sum(JSON.parse(fr.contentWindow.localStorage.getItem('evr_cart'))) === 4);
+    click(d, '.cart-item [data-remove]'); await wait(150);
+    ok('удаление позиции работает', d.querySelectorAll('.cart-item').length === 1);
+  } catch (e) {
+    fails++;
+    log.push('FAIL исключение: ' + (e && e.message));
+  }
+  log.push('---'); log.push(fails ? ('ПРОВАЛЕНО: ' + fails) : 'ВСЁ ЗЕЛЁНОЕ');
+  document.getElementById('out').textContent = log.join('\n');
+})();
+</script></body></html>

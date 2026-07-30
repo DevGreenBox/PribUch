@@ -1,0 +1,35 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>rhythm</title></head><body>
+<pre id="o">…</pre>
+<iframe id="fr" height="900" style="position:absolute;left:-9999px"></iframe>
+<script>
+var q = new URLSearchParams(location.search), fr = document.getElementById('fr'), out = [];
+fr.width = q.get('w') || 390;
+fr.src = '../' + (q.get('to') || 'index.html');
+function box(el) {                       // рамка содержимого блока, без его внутренних отступов
+  var kids = [].filter.call(el.children, function (k) { return k.getBoundingClientRect().height; });
+  if (!kids.length) return el.getBoundingClientRect();
+  var top = Infinity, bot = -Infinity;
+  kids.forEach(function (k) { var r = k.getBoundingClientRect(); top = Math.min(top, r.top); bot = Math.max(bot, r.bottom); });
+  return { top: top, bottom: bot };
+}
+fr.addEventListener('load', function () {
+  setTimeout(function () {
+    var d = fr.contentDocument, w = fr.contentWindow;
+    out.push('ширина=' + w.innerWidth + '  --section-y=' +
+      w.getComputedStyle(d.documentElement).getPropertyValue('--section-y').trim());
+    var blocks = [].slice.call(d.querySelectorAll('main > .hero, main > .section, main.container > *'));
+    var names = blocks.map(function (b, i) {
+      var h = b.querySelector('h1, h2, h3');
+      return (h ? h.textContent.trim().slice(0, 22) : (b.className || b.tagName).slice(0, 22)) || ('блок ' + i);
+    });
+    for (var i = 1; i < blocks.length; i++) {
+      out.push('  ' + Math.round(box(blocks[i]).top - box(blocks[i - 1]).bottom) +
+        'px   между «' + names[i - 1] + '» и «' + names[i] + '»');
+    }
+    var last = blocks[blocks.length - 1], f = d.querySelector('.footer');
+    if (f && last) out.push('  ' + Math.round(f.getBoundingClientRect().top - box(last).bottom) +
+      'px   между «' + names[names.length - 1] + '» и подвалом');
+    document.getElementById('o').textContent = out.join('\n');
+  }, 500);
+});
+</script></body></html>

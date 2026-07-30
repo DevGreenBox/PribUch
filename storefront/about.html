@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>О компании — Тепловодоучет</title>
+  <link rel="stylesheet" href="css/tokens.css?v=13">
+  <link rel="stylesheet" href="css/base.css?v=13">
+  <link rel="stylesheet" href="css/components.css?v=13">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="container">
+    <nav class="breadcrumbs">
+      <a href="index.html">Главная</a><span class="sep">/</span><span>О компании</span>
+    </nav>
+    <h1 class="page-title">О компании</h1>
+
+    <div>
+      <p class="muted" style="margin-bottom:var(--sp-5)">
+        «Тепловодоучет» — поставщик приборов учёта воды и тепловой энергии. Мы работаем с частными покупателями,
+        управляющими компаниями, ТСЖ, застройщиками и монтажными организациями по всей России.
+      </p>
+
+
+      <div class="card-block">
+        <h3>Что мы предлагаем</h3>
+        <ul class="stack" style="margin-top:12px">
+          <li>Тепловычислители, расходомеры и счётчики воды ведущих производителей.</li>
+          <li>Термопреобразователи, датчики давления, приборы КИПиА.</li>
+          <li>Сервисное и электротехническое оборудование, комплектующие для монтажа.</li>
+          <li>Полный пакет документов и автоматическое формирование накладной для юрлиц.</li>
+        </ul>
+      </div>
+
+      <div class="card-block">
+        <h3>Реквизиты</h3>
+        <table class="specs">
+          <tr><td>Наименование</td><td id="legal"></td></tr>
+          <tr><td>ИНН</td><td id="inn"></td></tr>
+          <tr><td>ОГРНИП</td><td id="ogrnip"></td></tr>
+          <tr><td>Адрес</td><td id="addr"></td></tr>
+          <tr><td>Телефон</td><td id="phone"></td></tr>
+          <tr><td>E-mail</td><td id="email"></td></tr>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/config.js?v=13"></script>
+  <script src="js/services/api.js?v=13"></script>
+  <script src="js/site.js?v=13"></script>
+  <script>
+    (function () {
+      // Реквизиты приезжают из настроек магазина (GET /settings) — ждём их,
+      // иначе на секунду показали бы значения по умолчанию.
+      EVR.settingsReady.then(function () {
+      var C = EVR.company;
+      document.getElementById('legal').textContent = C.legalName;
+      document.getElementById('inn').textContent = C.inn;
+      document.getElementById('ogrnip').textContent = C.ogrnip;
+      document.getElementById('addr').textContent = C.address;
+      document.getElementById('phone').textContent = C.phone;
+      document.getElementById('email').textContent = C.email;
+      });
+    })();
+  </script>
+</body>
+</html>

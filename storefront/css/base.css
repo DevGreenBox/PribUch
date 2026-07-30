@@ -1,0 +1,69 @@
+/* Тепловодоучет — reset + базовая типографика */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; -webkit-tap-highlight-color: rgba(30, 94, 255, .14); }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + 12px); }
+body {
+  font-family: var(--font-base);
+  font-size: var(--fs-base);
+  line-height: var(--lh);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Длинные слова («Электротехническое», названия приборов) не должны
+     расширять grid-колонки и вызывать горизонтальную прокрутку. */
+  overflow-wrap: break-word;
+}
+/* Пока открыта выезжающая панель (меню/фильтры) — страница под ней не скроллится */
+body.is-locked { overflow: hidden; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: none; }
+ul { list-style: none; }
+h1, h2, h3, h4 { line-height: 1.2; font-weight: 700; letter-spacing: -.01em; }
+h1 { font-size: var(--fs-2xl); }
+h2 { font-size: var(--fs-xl); }
+h3 { font-size: var(--fs-lg); }
+p { color: var(--color-text); }
+
+/* Раскладка.
+   Боковые поля задаём только через padding-inline: сокращение `padding` обнуляло бы
+   вертикальные отступы у блоков вида `class="section container"` (и у `main.container`). */
+.container { width: 100%; max-width: var(--container); margin: 0 auto; padding-inline: var(--sp-5); }
+.section { padding-block: var(--section-y); }
+/* Страницы без секций (main = контейнер) — тот же шаг до футера */
+main.container { padding-bottom: var(--section-y); }
+.muted { color: var(--color-text-muted); }
+.center { text-align: center; }
+.stack > * + * { margin-top: var(--sp-3); }
+
+/* Заголовок второстепенной страницы — единый стиль и отступ снизу */
+.page-title { margin-bottom: var(--sp-5); }
+
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-5); }
+.section-head h2 { font-size: var(--fs-xl); }
+.section-head a { color: var(--color-accent); font-size: var(--fs-sm); font-weight: 600; }
+.section-head a:hover { color: var(--color-accent-dark); }
+
+/* Хлебные крошки */
+.breadcrumbs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: var(--fs-sm); color: var(--color-text-muted); padding: var(--sp-4) 0; }
+.breadcrumbs a:hover { color: var(--color-accent); }
+.breadcrumbs .sep { color: var(--color-text-faint); }
+
+/* Утилиты */
+.hidden { display: none !important; }
+.text-danger { color: var(--color-danger); }
+.text-accent { color: var(--color-accent); }
+.nowrap { white-space: nowrap; }
+
+/* ---------- Адаптив: база ---------- */
+@media (max-width: 860px) {
+  .container { padding-inline: var(--sp-4); }
+  /* iOS зумит страницу при фокусе на поле с кеглем меньше 16px */
+  input, select, textarea { font-size: 16px; }
+  .breadcrumbs { padding: var(--sp-3) 0; }
+}
+@media (max-width: 400px) {
+  .container { padding-inline: var(--sp-3); }
+}

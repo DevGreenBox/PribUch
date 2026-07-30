@@ -1,0 +1,59 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>probe</title></head><body>
+<div id="out">running</div>
+<iframe id="fr" style="border:0;position:absolute;left:-9999px" width="390" height="900"></iframe>
+<script>
+var q = new URLSearchParams(location.search);
+var fr = document.getElementById('fr');
+fr.width = q.get('w') || 390;
+fr.src = '../' + (q.get('to') || 'index.html');
+fr.addEventListener('load', function () {
+  setTimeout(function () {
+    var d = fr.contentDocument, W = fr.contentWindow.innerWidth, lines = [];
+    lines.push('viewport=' + W + ' scrollWidth=' + d.documentElement.scrollWidth + ' bodyScrollWidth=' + d.body.scrollWidth);
+    var hd = d.querySelector('.header');
+    if (hd) lines.push('headerH=' + Math.round(hd.getBoundingClientRect().height) +
+      ' token=' + fr.contentWindow.getComputedStyle(d.documentElement).getPropertyValue('--header-h').trim());
+    var smallTaps = {};
+    d.querySelectorAll('a,button,input,select,label.check').forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (!r.height || el.offsetParent === null) return;
+      if (r.height < 36 && r.width > 0) {
+        var k = el.tagName.toLowerCase() + '.' + (el.className || '').toString().split(' ')[0];
+        smallTaps[k] = (smallTaps[k] || 0) + 1;
+      }
+    });
+    lines.push('TAP<36: ' + Object.keys(smallTaps).map(function (k) { return k + '×' + smallTaps[k]; }).join(', '));
+    var bad = [];
+    d.querySelectorAll('*').forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) return;
+      var cs = fr.contentWindow.getComputedStyle(el);
+      if (r.right > W + 1 || r.left < -1) {
+        // ignore elements inside a scroll container that is meant to scroll
+        var p = el.parentElement, clipped = false;
+        while (p) {
+          var ps = fr.contentWindow.getComputedStyle(p);
+          if (ps.overflowX === 'auto' || ps.overflowX === 'scroll' || ps.overflowX === 'hidden') { clipped = true; break; }
+          p = p.parentElement;
+        }
+        if (!clipped) bad.push([el.tagName.toLowerCase() + '.' + (el.className || '').toString().split(' ').filter(Boolean).slice(0,2).join('.'),
+          'l=' + Math.round(r.left) + ' r=' + Math.round(r.right) + ' w=' + Math.round(r.width)]);
+      }
+      // tap targets
+      if (/^(a|button)$/.test(el.tagName.toLowerCase()) && r.height > 0 && r.height < 32 && el.offsetParent !== null) {
+        // report small only once per class
+      }
+    });
+    lines.push('OVERFLOW(' + bad.length + '):');
+    bad.slice(0, 40).forEach(function (b) { lines.push('  ' + b[0] + ' ' + b[1]); });
+    // font sizes of inputs (iOS zoom check)
+    var small = [];
+    d.querySelectorAll('input,select,textarea').forEach(function (el) {
+      var fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize);
+      if (fs < 16) small.push((el.name || el.id || el.type) + '=' + fs + 'px');
+    });
+    lines.push('INPUT_FS<16(' + small.length + '): ' + small.slice(0, 12).join(', '));
+    document.getElementById('out').textContent = lines.join('\n');
+  }, 600);
+});
+</script></body></html>

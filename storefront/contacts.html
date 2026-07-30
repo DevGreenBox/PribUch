@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Контакты — Тепловодоучет</title>
+  <link rel="stylesheet" href="css/tokens.css?v=13">
+  <link rel="stylesheet" href="css/base.css?v=13">
+  <link rel="stylesheet" href="css/components.css?v=13">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="container">
+    <nav class="breadcrumbs">
+      <a href="index.html">Главная</a><span class="sep">/</span><span>Контакты</span>
+    </nav>
+    <h1 class="page-title">Контакты</h1>
+
+    <div class="cart-layout">
+      <div class="card-block">
+        <h3>Написать нам</h3>
+        <p class="muted" style="margin-bottom:16px">Задайте вопрос или запросите цену — ответим в рабочее время.</p>
+        <form id="contact-form" novalidate>
+          <div class="form-grid">
+            <div class="field"><label>Имя <span class="req">*</span></label><input name="name" required></div>
+            <div class="field"><label>Телефон <span class="req">*</span></label><input name="phone" required></div>
+            <div class="field field--full"><label>E-mail</label><input type="email" name="email"></div>
+            <div class="field field--full"><label>Сообщение <span class="req">*</span></label><textarea name="msg" required></textarea></div>
+          </div>
+          <button type="submit" class="btn btn--primary btn--lg" style="margin-top:16px">Отправить</button>
+          <span id="contact-ok" class="text-accent" style="margin-left:12px;font-weight:600"></span>
+        </form>
+      </div>
+
+      <aside class="summary" style="position:static">
+        <h3>Реквизиты и связь</h3>
+        <div class="footer__contact" style="color:var(--color-text);line-height:2">
+          <div><b>Наименование:</b> <span id="c-legal"></span></div>
+          <div><b>ИНН:</b> <span id="c-inn"></span></div>
+          <div><b>ОГРНИП:</b> <span id="c-ogrnip"></span></div>
+          <div><b>Телефон:</b> <span id="c-phone"></span></div>
+          <div><b>E-mail:</b> <span id="c-email"></span></div>
+          <div><b>Часы работы:</b> <span id="c-hours"></span></div>
+          <div><b>Адрес:</b> <span id="c-addr"></span></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/config.js?v=13"></script>
+  <script src="js/services/api.js?v=13"></script>
+  <script src="js/site.js?v=13"></script>
+  <script>
+    (function () {
+      EVR.settingsReady.then(function () {
+      var C = EVR.company;
+      document.getElementById('c-legal').textContent = C.legalShort;
+      document.getElementById('c-inn').textContent = C.inn;
+      document.getElementById('c-ogrnip').textContent = C.ogrnip;
+      document.getElementById('c-phone').textContent = C.phone;
+      document.getElementById('c-email').textContent = C.email;
+      document.getElementById('c-hours').textContent = C.hours;
+      document.getElementById('c-addr').textContent = C.address;
+      document.getElementById('contact-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var form = e.target;
+        var bad = null;
+        form.querySelectorAll('[required]').forEach(function (f) {
+          if (!f.value.trim()) { f.style.borderColor = 'var(--color-danger)'; if (!bad) bad = f; }
+          else f.style.borderColor = '';
+        });
+        if (bad) { bad.focus(); return; }
+
+        var ok = document.getElementById('contact-ok');
+        ok.classList.remove('text-danger');
+        ok.textContent = 'Отправляем…';
+        // Заявка уходит в админку магазина (раздел «Заявки»), а не в никуда.
+        EVR_API.lead({
+          name: form.name.value.trim(),
+          contact: [form.phone.value.trim(), form.email.value.trim()].filter(Boolean).join(', '),
+          message: form.msg.value.trim()
+        }).then(function () {
+          form.reset();
+          ok.textContent = '✓ Отправлено — менеджер свяжется с вами';
+        }).catch(function (err) {
+          ok.textContent = 'Не удалось отправить: ' + (err && err.message ? err.message : 'нет связи');
+          ok.classList.add('text-danger');
+        });
+      });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оптовым покупателям — Тепловодоучет</title>
+  <link rel="stylesheet" href="css/tokens.css?v=13">
+  <link rel="stylesheet" href="css/base.css?v=13">
+  <link rel="stylesheet" href="css/components.css?v=13">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="container">
+    <nav class="breadcrumbs">
+      <a href="index.html">Главная</a><span class="sep">/</span><span>Оптовым покупателям</span>
+    </nav>
+    <h1 class="page-title">Оптовым покупателям</h1>
+
+    <div>
+      <p class="muted" style="margin-bottom:var(--sp-5)">
+        Работаем с управляющими компаниями, ТСЖ, застройщиками, подрядными и монтажными организациями.
+        Специальные цены на объём, отсрочка платежа для юрлиц и полный пакет документов.
+      </p>
+
+      <div class="features" id="features" style="margin-bottom:var(--sp-6)"></div>
+
+      <div class="card-block">
+        <h3>Запросить оптовый прайс / счёт</h3>
+        <p class="muted" style="margin-bottom:16px">Оставьте контакты — менеджер вышлет актуальный прайс и рассчитает заказ.</p>
+        <form id="wholesale-form" novalidate>
+          <div class="form-grid">
+            <div class="field"><label>Организация <span class="req">*</span></label><input name="company" required></div>
+            <div class="field"><label>ИНН</label><input name="inn" inputmode="numeric"></div>
+            <div class="field"><label>Контактное лицо <span class="req">*</span></label><input name="name" required></div>
+            <div class="field"><label>Телефон <span class="req">*</span></label><input name="phone" required></div>
+            <div class="field field--full"><label>E-mail <span class="req">*</span></label><input type="email" name="email" required></div>
+            <div class="field field--full"><label>Комментарий / позиции</label><textarea name="msg" placeholder="Какие приборы и в каком количестве интересуют"></textarea></div>
+          </div>
+          <button type="submit" class="btn btn--primary btn--lg" style="margin-top:16px">Отправить заявку</button>
+          <span id="wholesale-ok" class="text-accent" style="margin-left:12px;font-weight:600"></span>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/config.js?v=13"></script>
+  <script src="js/services/api.js?v=13"></script>
+  <script src="js/site.js?v=13"></script>
+  <script>
+    (function () {
+      var I = EVR.icons;
+      // Тот же рендер плашек, что и в блоке преимуществ на главной — со своим набором пунктов
+      EVR.renderFeatures('features', [
+        [I.tag, 'Цены на объём', 'Оптовые условия от 50 шт'],
+        [I.doc, 'Документы', 'Счёт, договор, накладная, УПД'],
+        [I.truck, 'Доставка партий', 'СДЭК и транспортные компании'],
+        [I.clock, 'Отсрочка', 'Для постоянных клиентов-юрлиц']
+      ]);
+      document.getElementById('wholesale-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var bad = null;
+        e.target.querySelectorAll('[required]').forEach(function (f) {
+          if (!f.value.trim()) { f.style.borderColor = 'var(--color-danger)'; if (!bad) bad = f; }
+          else f.style.borderColor = '';
+        });
+        if (bad) { bad.focus(); return; }
+        e.target.reset();
+        document.getElementById('wholesale-ok').textContent = '✓ Заявка отправлена';
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Производители — Тепловодоучет</title>
+  <meta name="description" content="Производители приборов учёта в каталоге «Тепловодоучет»: Термотроник, Теплоком, Промприбор, Логика, Взлёт, Тепловодомер, Декаст, Росма и другие.">
+  <link rel="stylesheet" href="css/tokens.css?v=13">
+  <link rel="stylesheet" href="css/base.css?v=13">
+  <link rel="stylesheet" href="css/components.css?v=13">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="container">
+    <nav class="breadcrumbs">
+      <a href="index.html">Главная</a><span class="sep">/</span><span>Производители</span>
+    </nav>
+    <div class="section-head">
+      <h1>Производители</h1>
+      <a href="catalog.html">Весь каталог →</a>
+    </div>
+    <p style="max-width:760px;color:var(--color-text-muted);margin-bottom:var(--sp-5)">
+      Мы поставляем приборы учёта воды и тепловой энергии от ведущих российских производителей.
+      Вся продукция сертифицирована и внесена в Госреестр средств измерений. Выберите производителя,
+      чтобы посмотреть его товары в каталоге.
+    </p>
+
+    <div class="cat-grid" id="makers-grid"></div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/config.js?v=13"></script>
+  <script src="js/services/api.js?v=13"></script>
+  <script src="js/site.js?v=13"></script>
+  <script>
+    (function () {
+      var esc = EVR.esc;
+      // Производители приезжают из каталога Admik (бренды товаров).
+      EVR.ready.then(function (D) {
+      // p.maker — бренд товара из каталога Admik; у монтажных комплектов, гильз
+      // и т.п. бренда нет, они в список производителей не попадают.
+      var counts = {};
+      D.products.forEach(function (p) {
+        if (!p.maker) return;
+        counts[p.maker] = (counts[p.maker] || 0) + 1;
+      });
+      var makers = Object.keys(counts)
+        .sort(function (a, b) { return counts[b] - counts[a] || a.localeCompare(b, 'ru'); });
+
+      function plural(n) {
+        var t = n % 10, h = n % 100;
+        if (t === 1 && h !== 11) return 'товар';
+        if (t >= 2 && t <= 4 && (h < 12 || h > 14)) return 'товара';
+        return 'товаров';
+      }
+
+      document.getElementById('makers-grid').innerHTML = makers.map(function (m) {
+        return '<a class="cat-tile" href="catalog.html?maker=' + encodeURIComponent(m) + '">' +
+          '<span class="cat-tile__icon">' + EVR.icons.box + '</span>' +
+          '<span class="cat-tile__name">' + esc(m) + '</span>' +
+          '<span class="cat-tile__count">' + counts[m] + ' ' + plural(counts[m]) + '</span>' +
+        '</a>';
+      }).join('');
+      }).catch(function (err) { EVR.dataError('makers-grid', err); });
+    })();
+  </script>
+</body>
+</html>

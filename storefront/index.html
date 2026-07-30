@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тепловодоучет — приборы учёта воды и тепловой энергии</title>
+  <meta name="description" content="Интернет-магазин «Тепловодоучет»: тепловычислители, расходомеры, счётчики воды, датчики. Розница и опт. Доставка СДЭК по всей России.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="css/tokens.css?v=13">
+  <link rel="stylesheet" href="css/base.css?v=13">
+  <link rel="stylesheet" href="css/components.css?v=13">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <div>
+          <h1>Приборы учёта воды и&nbsp;тепловой энергии</h1>
+          <p>Тепловычислители, расходомеры, счётчики воды, термопреобразователи и комплектующие. Для физлиц и организаций — розница и оптовые поставки.</p>
+          <div class="hero__actions">
+            <a class="btn btn--primary btn--lg" href="catalog.html">Перейти в каталог</a>
+            <a class="btn btn--outline btn--lg" href="wholesale.html">Оптовым покупателям</a>
+          </div>
+        </div>
+        <!-- Заглушка под изображение. Заменить на:
+             <img class="hero__media" src="assets/hero.jpg" alt="Приборы учёта воды и тепловой энергии" width="720" height="540"> -->
+        <div class="hero__media hero__media--placeholder" role="img" aria-label="Изображение будет добавлено позже">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5-5-9 9"/>
+          </svg>
+          <span>Здесь будет изображение</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- КАТЕГОРИИ -->
+    <section class="section container">
+      <div class="section-head">
+        <h2>Категории</h2>
+        <a href="catalog.html">Весь каталог →</a>
+      </div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </section>
+
+    <!-- ПОПУЛЯРНОЕ -->
+    <section class="section container">
+      <div class="section-head">
+        <h2>Популярные товары</h2>
+        <a href="catalog.html">Смотреть все →</a>
+      </div>
+      <div class="product-grid" id="popular-grid"></div>
+    </section>
+
+    <!-- ОБРАТНАЯ СВЯЗЬ -->
+    <section class="section container">
+      <div class="promo">
+        <div>
+          <h2>Остались вопросы? Напишите нам</h2>
+          <p>Поможем подобрать прибор под ваши условия, проверим совместимость с существующим узлом учёта, рассчитаем комплект и подготовим предложение. Оставьте заявку в форме обратной связи — ответим и подскажем, что именно вам нужно.</p>
+          <a class="btn btn--primary btn--lg" href="contacts.html">Задать вопрос</a>
+        </div>
+        <div class="promo__figure" aria-hidden="true">
+          <!-- viewBox сдвинут по Y: рисунок занимает 18..119, сдвиг центрирует его оптически -->
+          <svg viewBox="0 8.5 120 120" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+            <!-- оголовье -->
+            <path d="M24 66V56a36 36 0 0 1 72 0v10"/>
+            <!-- чашки гарнитуры -->
+            <rect x="14" y="60" width="22" height="34" rx="11"/>
+            <rect x="84" y="60" width="22" height="34" rx="11"/>
+            <!-- микрофон -->
+            <path d="M96 94v4a12 12 0 0 1-12 12H68"/>
+            <circle cx="58" cy="110" r="7"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ПРЕИМУЩЕСТВА -->
+    <section class="section container">
+      <div class="features" id="features"></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/config.js?v=13"></script>
+  <script src="js/services/api.js?v=13"></script>
+  <script src="js/site.js?v=13"></script>
+  <script>
+    (function () {
+      // Преимущества не зависят от каталога — рисуем сразу.
+      EVR.renderFeatures('features');
+      // Категории и подборка товаров приезжают из Storefront API.
+      EVR.ready.then(function (D) {
+
+      // Категории с подсчётом
+      var counts = {};
+      D.products.forEach(function (p) { counts[p.category] = (counts[p.category] || 0) + 1; });
+      document.getElementById('cat-grid').innerHTML = D.categories.map(function (c) {
+        return '<a class="cat-tile" href="catalog.html?cat=' + encodeURIComponent(c) + '">' +
+          '<span class="cat-tile__icon">' + EVR.catIcon(c) + '</span>' +
+          '<span class="cat-tile__name">' + EVR.esc(c) + '</span>' +
+          '<span class="cat-tile__count">' + counts[c] + ' товаров</span>' +
+        '</a>';
+      }).join('');
+
+      // Популярные — по одному из первых категорий, с ценой
+      var withPrice = D.products.filter(function (p) { return p.price != null; });
+      var picks = [], seen = {};
+      withPrice.forEach(function (p) {
+        if (picks.length >= 8) return;
+        if (seen[p.category] && picks.length < D.categories.length) return;
+        seen[p.category] = true; picks.push(p);
+      });
+      while (picks.length < 8 && picks.length < withPrice.length) picks.push(withPrice[picks.length]);
+      document.getElementById('popular-grid').innerHTML = picks.map(EVR.productCard).join('');
+      }).catch(function (err) {
+        EVR.dataError('cat-grid', err);
+        document.getElementById('popular-grid').innerHTML = '';
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>open</title>
+<style>html,body{margin:0;padding:0;overflow:hidden}iframe{border:0;display:block}</style></head><body>
+<iframe id="fr"></iframe>
+<script>
+var q = new URLSearchParams(location.search), fr = document.getElementById('fr');
+fr.width = q.get('w') || 390; fr.height = q.get('h') || 844;
+fr.src = '../' + (q.get('to') || 'index.html');
+fr.addEventListener('load', function () {
+  setTimeout(function () {
+    var sel = q.get('click');
+    if (sel) { var el = fr.contentDocument.querySelector(sel); if (el) el.click(); }
+  }, 300);
+});
+</script></body></html>

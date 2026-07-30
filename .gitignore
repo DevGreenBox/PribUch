@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Next.js / build output
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env*.local
+
+# Локальный стенд: логи и данные MinIO
+.stand/
+
+# Netlify
+.netlify/
+
+# OS / editor
+.DS_Store
+*.log
+
+# Внешний upstream (TarrySeeker/Uni_BD) — свой репозиторий
+Uni_BD/
+
+# Черновики
+finalPU.md

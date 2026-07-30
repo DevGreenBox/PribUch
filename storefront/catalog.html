@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Каталог — Тепловодоучет</title>
+  <meta name="description" content="Каталог приборов учёта воды и тепла: фильтры по категории, производителю и цене.">
+  <link rel="stylesheet" href="css/tokens.css?v=13">
+  <link rel="stylesheet" href="css/base.css?v=13">
+  <link rel="stylesheet" href="css/components.css?v=13">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="container">
+    <nav class="breadcrumbs" id="crumbs"></nav>
+    <h1 id="page-title" class="page-title">Каталог</h1>
+
+    <div class="catalog">
+      <!-- Фильтры. На мобильных — выезжающий лист: шапка с закрытием,
+           прокручиваемая середина и кнопка «Показать» внизу -->
+      <aside class="filters" id="filters" aria-hidden="false">
+        <div class="filters__head">
+          <b>Фильтры</b>
+          <button class="filters__close" type="button" data-filters-close aria-label="Закрыть фильтры">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <div class="filters__scroll">
+          <div class="filters__group">
+            <div class="filters__title">Категория</div>
+            <div class="cat-filter-list" id="f-category"></div>
+          </div>
+          <div class="filters__group">
+            <div class="filters__title">Производитель</div>
+            <div class="filters__list" id="f-maker"></div>
+          </div>
+          <div class="filters__group">
+            <div class="filters__title">Цена, ₽</div>
+            <div class="price-range">
+              <input type="number" id="f-min" placeholder="от" min="0" inputmode="numeric">
+              <span class="muted">—</span>
+              <input type="number" id="f-max" placeholder="до" min="0" inputmode="numeric">
+            </div>
+          </div>
+          <div class="filters__group">
+            <label class="check"><input type="checkbox" id="f-instock"> <span>Только с ценой</span></label>
+            <label class="check" style="margin-top:8px"><input type="checkbox" id="f-onorder"> <span>Под заказ</span></label>
+          </div>
+          <button class="btn btn--outline btn--block filters__reset" id="f-reset">Сбросить фильтры</button>
+        </div>
+        <button class="btn btn--primary filters__apply" type="button" data-filters-close><span>Показать <span id="f-apply-count"></span></span></button>
+      </aside>
+
+      <!-- Результаты -->
+      <section>
+        <div class="catalog__toolbar">
+          <button class="btn btn--outline filters-toggle" data-filters-toggle>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            Фильтры <span class="filters-toggle__badge" id="f-active-count"></span>
+          </button>
+          <span class="catalog__count" id="count"></span>
+          <select class="select" id="sort">
+            <option value="pop">По популярности</option>
+            <option value="price-asc">Цена: по возрастанию</option>
+            <option value="price-desc">Цена: по убыванию</option>
+            <option value="name">По названию</option>
+          </select>
+        </div>
+        <div class="product-grid" id="grid"></div>
+        <div class="pagination" id="pagination"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/config.js?v=13"></script>
+  <script src="js/services/api.js?v=13"></script>
+  <script src="js/site.js?v=13"></script>
+  <script src="js/catalog.js?v=13"></script>
+</body>
+</html>

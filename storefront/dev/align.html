@@ -1,0 +1,28 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>align</title></head><body><pre id="o">…</pre>
+<iframe id="fr" width="390" height="844" style="position:absolute;left:-9999px" src="../index.html"></iframe>
+<script>
+var fr = document.getElementById('fr'), out = [];
+fr.onload = function () {
+  setTimeout(function () {
+    var d = fr.contentDocument, w = fr.contentWindow;
+    d.querySelector('[data-nav-toggle]').click();
+    setTimeout(function () {
+      var panel = d.querySelector('.mnav').getBoundingClientRect();
+      function row(label, el) {
+        if (!el) { out.push(label + ': нет'); return; }
+        var r = el.getBoundingClientRect();
+        var pl = parseFloat(w.getComputedStyle(el).paddingLeft) || 0;
+        out.push('  текст на ' + String(Math.round(r.left - panel.left + pl)).padStart(3) +
+          'px, высота ' + String(Math.round(r.height)).padStart(3) + 'px — ' + label);
+      }
+      var cat = d.querySelector('.mnav__section a');
+      row('иконка категории', cat.querySelector('svg'));
+      row('текст категории', cat.querySelector('span'));
+      row('ссылка «Весь каталог»', d.querySelectorAll('.mnav__section')[1].querySelector('a'));
+      row('телефон', d.querySelector('.mnav__phone'));
+      row('часы работы', d.querySelector('.mnav__hours'));
+      document.getElementById('o').textContent = out.join('\n');
+    }, 400);
+  }, 400);
+};
+</script></body></html>

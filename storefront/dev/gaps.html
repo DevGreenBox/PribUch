@@ -1,0 +1,27 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>gaps</title></head><body><pre id="o">…</pre>
+<iframe id="fr" height="1200" style="position:absolute;left:-9999px"></iframe>
+<script>
+var q = new URLSearchParams(location.search), fr = document.getElementById('fr'), out = [];
+fr.width = q.get('w') || 390;
+fr.src = '../' + (q.get('to') || 'index.html');
+fr.addEventListener('load', function () {
+  setTimeout(function () {
+    var d = fr.contentDocument, w = fr.contentWindow;
+    out.push('ширина=' + w.innerWidth);
+    ['.cat-grid', '.features', '.product-grid'].forEach(function (sel) {
+      var g = d.querySelector(sel);
+      if (!g) return;
+      var cs = w.getComputedStyle(g);
+      var kids = [].slice.call(g.children).map(function (k) { return k.getBoundingClientRect(); });
+      var colGap = null, rowGap = null;
+      for (var i = 1; i < kids.length; i++) {
+        if (Math.abs(kids[i].top - kids[i - 1].top) < 2) colGap = Math.round(kids[i].left - kids[i - 1].right);
+        else if (rowGap === null) rowGap = Math.round(kids[i].top - kids[i - 1].bottom);
+      }
+      out.push('  ' + sel + ': gap=' + cs.gap + '  фактически по горизонтали=' + colGap +
+        'px, по вертикали=' + rowGap + 'px, ширина плашки=' + Math.round(kids[0].width) + 'px');
+    });
+    document.getElementById('o').textContent = out.join('\n');
+  }, 500);
+});
+</script></body></html>

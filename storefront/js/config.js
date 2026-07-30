@@ -39,7 +39,26 @@
 
   var base = fromQuery() || API_BASE || fromStore() || auto();
 
+  /* Демо-режим: платформы Admik рядом нет, каталог берётся из снимка
+     (js/services/api-demo.js). Включается на GitHub Pages — там сайт статичен, а
+     API стенда доступен только по HTTP и был бы заблокирован как mixed content.
+     ?demo=1 — принудительно, для локальной проверки. */
+  function isDemo() {
+    if (/\.github\.io$/.test(location.hostname)) return true;
+    // Локальная проверка: ?demo=1 запоминается на вкладку, иначе флаг терялся бы
+    // при первом же переходе по ссылке (?demo=reset — выключить).
+    var v = new URLSearchParams(location.search).get('demo');
+    try {
+      if (v === 'reset') { sessionStorage.removeItem('tvu_demo'); return false; }
+      if (v === '1') sessionStorage.setItem('tvu_demo', '1');
+      return sessionStorage.getItem('tvu_demo') === '1';
+    } catch (e) {
+      return v === '1';
+    }
+  }
+
   window.EVR_CONFIG = {
+    demo: isDemo(),
     apiBase: String(base).replace(/\/+$/, ''),
     apiPath: '/api/storefront/v1',
     // Сколько секунд держать каталог в sessionStorage между переходами по

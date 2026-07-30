@@ -1,0 +1,58 @@
+# Демо-витрина «Тепловодоучет» на GitHub Pages.
+#
+# Витрина лежит в подпапке storefront/, а Pages умеет публиковать только корень
+# ветки или /docs — поэтому собираем статику отдельным шагом и отдаём как артефакт.
+# На Pages сайт работает в демо-режиме (js/services/api-demo.js): каталог берётся
+# из снимка js/data/demo/catalog.json, заказы и заявки не отправляются.
+name: Deploy storefront demo to Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'storefront/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Параллельные публикации друг друга не догоняют: держим одну очередь.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Собрать статику (storefront/build.sh → storefront/dist)
+        run: bash storefront/build.sh
+
+      - name: Проверить, что снимок каталога попал в сборку
+        run: |
+          test -s storefront/dist/js/data/demo/catalog.json
+          echo "снимок: $(du -h storefront/dist/js/data/demo/catalog.json | cut -f1)"
+
+      # Jekyll на Pages пропускает файлы и папки, начинающиеся с подчёркивания.
+      - name: Отключить обработку Jekyll
+        run: touch storefront/dist/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: storefront/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
